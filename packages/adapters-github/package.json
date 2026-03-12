@@ -1,0 +1,10 @@
+{
+  "name": "@conveyor/adapters-github",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "echo adapters-github:build",
+    "test": "echo adapters-github:test"
+  }
+}

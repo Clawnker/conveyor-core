@@ -1,0 +1,15 @@
+{
+  "name": "@conveyor/starter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node src/index.js",
+    "build": "echo starter:build",
+    "test": "echo starter:test"
+  },
+  "dependencies": {
+    "@conveyor/core": "0.1.0",
+    "@conveyor/adapters-github": "0.1.0"
+  }
+}

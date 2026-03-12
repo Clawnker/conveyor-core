@@ -1,0 +1,13 @@
+{
+  "name": "conveyor-core-monorepo",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "packages/*",
+    "apps/*"
+  ],
+  "scripts": {
+    "build": "npm run -ws build",
+    "test": "npm run -ws test"
+  }
+}
