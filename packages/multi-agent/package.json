@@ -1,0 +1,11 @@
+{
+  "name": "@conveyor-core/multi-agent",
+  "version": "0.1.0",
+  "description": "Multi-agent orchestration adapter — registry, lanes, lenses, onboarding, failure memory",
+  "type": "module",
+  "main": "src/index.js",
+  "scripts": {
+    "build": "echo multi-agent:build",
+    "test": "node --test src/*.test.js"
+  }
+}
