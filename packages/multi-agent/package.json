@@ -5,6 +5,7 @@
   "type": "module",
   "main": "src/index.js",
   "scripts": {
+    "build": "echo multi-agent:build",
     "test": "node --test src/*.test.js"
   }
 }

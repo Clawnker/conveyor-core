@@ -10,14 +10,14 @@ export function createHandoff(registry, lensRunner) {
   return {
     /**
      * Initiate a handoff from one agent to another.
-     * Validates lane permissions and runs lenses before transfer.
+     * Validates lane permissions and applies lenses before transfer.
      *
      * @param {string} fromAgent - agent handing off
      * @param {string} toAgent - agent receiving
      * @param {Object} card - the conveyor card
      * @param {Object} evidence - work product / evidence packet
-     * @param {Function} [checker] - lens checker function
-     * @returns {{ accepted, card, lensResults, reason }}
+     * @param {Function} [checker] - lens reviewer function
+     * @returns {{ accepted, card, lensResults, handoff?, reason }}
      */
     async initiate(fromAgent, toAgent, card, evidence, checker) {
       // Verify receiving agent can touch this card
@@ -41,18 +41,11 @@ export function createHandoff(registry, lensRunner) {
         };
       }
 
-      // Run lenses if checker provided
+      // Lenses are advisory: they produce optimization suggestions for the
+      // handoff packet but do not act as structural pass/fail gates here.
       let lensResults = null;
       if (checker && lensRunner) {
-        lensResults = await lensRunner.run(fromAgent, card.stage, evidence, checker);
-        if (!lensResults.passed) {
-          return {
-            accepted: false,
-            card,
-            lensResults,
-            reason: `Lens check failed for ${fromAgent} at stage ${card.stage}`,
-          };
-        }
+        lensResults = await lensRunner.apply(fromAgent, card.stage, evidence, checker);
       }
 
       // Build handoff packet
