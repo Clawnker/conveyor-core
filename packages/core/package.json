@@ -6,6 +6,6 @@
   "types": "src/index.d.ts",
   "scripts": {
     "build": "echo core:build",
-    "test": "echo core:test"
+    "test": "node --test src/*.test.js"
   }
 }

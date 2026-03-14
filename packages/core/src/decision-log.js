@@ -33,13 +33,17 @@ export function parseDecisionLog(markdown = '') {
   const lines = markdown.split('\n');
 
   for (const line of lines) {
-    // Skip header and separator rows
-    if (!line.startsWith('|') || line.includes('---') || line.includes('Date')) continue;
+    const trimmed = line.trim();
 
-    const cells = line
+    if (!trimmed.startsWith('|')) continue;
+    if (isDecisionLogHeader(trimmed) || isDecisionLogSeparator(trimmed)) continue;
+
+    const cells = trimmed
+      .replace(/^\|/, '')
+      .replace(/\|$/, '')
       .split('|')
-      .map((c) => c.trim())
-      .filter(Boolean);
+      .map((c) => c.trim());
+
     if (cells.length >= 4) {
       entries.push({
         date: cells[0],
@@ -113,4 +117,12 @@ export function decisionFromTransition(card, fromStage, toStage, why, scope) {
     scope: scope || card.projectKey || 'global',
     expiry: '',
   };
+}
+
+function isDecisionLogHeader(line) {
+  return /^\|\s*Date\s*\|\s*Decision\s*\|\s*Why\s*\|\s*Scope\s*\|\s*Expiry\s*\|?\s*$/i.test(line);
+}
+
+function isDecisionLogSeparator(line) {
+  return /^\|(?:\s*:?-{3,}:?\s*\|)+\s*$/.test(line);
 }
