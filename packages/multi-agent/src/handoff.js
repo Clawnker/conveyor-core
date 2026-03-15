@@ -13,31 +13,33 @@ export function createHandoff(registry, lensRunner) {
      * Validates lane permissions and applies lenses before transfer.
      *
      * @param {string} fromAgent - agent handing off
-     * @param {string} toAgent - agent receiving
+     * @param {string|Object} toAgent - agent receiving or structured routing target
      * @param {Object} card - the conveyor card
      * @param {Object} evidence - work product / evidence packet
      * @param {Function} [checker] - lens reviewer function
      * @returns {{ accepted, card, lensResults, handoff?, reason }}
      */
     async initiate(fromAgent, toAgent, card, evidence, checker) {
+      const target = normalizeHandoffTarget(fromAgent, toAgent, evidence, registry);
+
       // Verify receiving agent can touch this card
-      if (!registry.canTouch(toAgent, card)) {
+      if (target.toAgentId && !registry.canTouch(target.toAgentId, card)) {
         return {
           accepted: false,
           card,
           lensResults: null,
-          reason: `Agent ${toAgent} cannot touch card ${card.id} (lane mismatch)`,
+          reason: `Agent ${target.toAgentId} cannot touch card ${card.id} (lane mismatch)`,
         };
       }
 
       // Verify receiving agent is online
-      const receiver = registry.get(toAgent);
-      if (!receiver || receiver.status !== 'online') {
+      const receiver = target.toAgentId ? registry.get(target.toAgentId) : null;
+      if (target.toAgentId && (!receiver || receiver.status !== 'online')) {
         return {
           accepted: false,
           card,
           lensResults: null,
-          reason: `Agent ${toAgent} is not online (status: ${receiver?.status || 'unknown'})`,
+          reason: `Agent ${target.toAgentId} is not online (status: ${receiver?.status || 'unknown'})`,
         };
       }
 
@@ -51,11 +53,18 @@ export function createHandoff(registry, lensRunner) {
       // Build handoff packet
       const handoff = {
         from: fromAgent,
-        to: toAgent,
+        to: target.toAgentId,
         card,
         evidence,
         lensResults,
-        handoffAt: new Date().toISOString(),
+        handoffAt: target.requestedAt,
+        toAgentId: target.toAgentId,
+        toLane: target.toLane,
+        intent: target.intent,
+        evidenceSummary: target.evidenceSummary,
+        requestedBy: target.requestedBy,
+        requestedByLane: target.requestedByLane,
+        requestedAt: target.requestedAt,
       };
 
       return {
@@ -67,4 +76,29 @@ export function createHandoff(registry, lensRunner) {
       };
     },
   };
+}
+
+function normalizeHandoffTarget(fromAgent, toAgent, evidence, registry) {
+  const source = typeof toAgent === 'string' ? { toAgentId: toAgent } : (toAgent || {});
+  const sender = registry.get(fromAgent);
+
+  return {
+    toAgentId: cleanString(source.toAgentId ?? source.toAgent ?? source.to ?? null),
+    toLane: cleanString(source.toLane ?? source.targetLane ?? source.lane ?? null),
+    intent: cleanString(source.intent ?? null),
+    evidenceSummary: cleanString(source.evidenceSummary ?? source.summary ?? evidence?.summary ?? null),
+    requestedBy: cleanString(source.requestedBy ?? source.fromAgentId ?? source.from ?? fromAgent ?? null),
+    requestedByLane: cleanString(source.requestedByLane ?? source.fromLane ?? firstLane(sender?.lane) ?? null),
+    requestedAt: cleanString(source.requestedAt ?? source.handoffAt ?? null) || new Date().toISOString(),
+  };
+}
+
+function firstLane(value) {
+  return Array.isArray(value) ? value[0] : value;
+}
+
+function cleanString(value) {
+  if (typeof value !== 'string') return null;
+  const trimmed = value.trim();
+  return trimmed === '' ? null : trimmed;
 }

@@ -44,8 +44,39 @@ test('handoff applies advisory lenses and returns a handoff packet', async () =>
   assert.equal(result.accepted, true);
   assert.equal(result.handoff.from, 'builder');
   assert.equal(result.handoff.to, 'audit');
+  assert.equal(result.handoff.toAgentId, 'audit');
+  assert.equal(result.handoff.requestedBy, 'builder');
+  assert.equal(result.handoff.requestedByLane, 'web-*');
+  assert.equal(result.handoff.evidenceSummary, 'Initial draft complete');
   assert.deepEqual(result.lensResults.outputReview, ['Top reviewer: tighten scope']);
   assert.deepEqual(result.lensResults.processOptimisation, ['What would you improve? via checklist']);
   assert.deepEqual(result.lensResults.priority, ['Initial draft complete']);
   assert.deepEqual(result.lensResults.lensesApplied, ['quality-pass']);
+});
+
+test('handoff supports lane-targeted packets without a specific receiver', async () => {
+  const registry = createRegistry();
+  registry.register({ id: 'builder', role: 'builder', lane: ['delivery'], status: 'online' });
+
+  const handoff = createHandoff(registry, createLensRunner());
+  const result = await handoff.initiate(
+    'builder',
+    {
+      toLane: 'review',
+      intent: 'request-review',
+      evidenceSummary: 'Linked tests and rollout notes',
+      requestedAt: '2026-04-01T12:00:00.000Z',
+    },
+    { id: 'card-7', stage: 'review' },
+    { summary: 'Linked tests and rollout notes' }
+  );
+
+  assert.equal(result.accepted, true);
+  assert.equal(result.handoff.to, null);
+  assert.equal(result.handoff.toLane, 'review');
+  assert.equal(result.handoff.intent, 'request-review');
+  assert.equal(result.handoff.evidenceSummary, 'Linked tests and rollout notes');
+  assert.equal(result.handoff.requestedBy, 'builder');
+  assert.equal(result.handoff.requestedByLane, 'delivery');
+  assert.equal(result.handoff.requestedAt, '2026-04-01T12:00:00.000Z');
 });

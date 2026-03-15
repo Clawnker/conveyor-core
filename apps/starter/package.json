@@ -6,10 +6,9 @@
   "scripts": {
     "dev": "node src/index.js",
     "build": "echo starter:build",
-    "test": "echo starter:test"
+    "test": "node --test src/*.test.js"
   },
   "dependencies": {
-    "@conveyor/core": "0.1.0",
-    "@conveyor/adapters-github": "0.1.0"
+    "@conveyor/core": "0.1.0"
   }
 }
