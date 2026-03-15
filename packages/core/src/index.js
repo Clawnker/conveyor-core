@@ -1,5 +1,12 @@
 export { checkFailureGate, addFailure, pruneFailures, parseFailureLog, serializeFailureLog } from './failure-gate.js';
 export { logDecision, parseDecisionLog, serializeDecisionLog, decisionFromTransition } from './decision-log.js';
+export {
+  defaultLaneForStage,
+  normalizePendingHandoff,
+  normalizeActiveClaim,
+  claimMatchesRoutingTarget,
+  pendingHandoffTargetsRouting,
+} from './routing.js';
 
 export const STAGES = ['intake', 'scoped', 'in_progress', 'review', 'qa', 'done'];
 
